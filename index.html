@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>E-Commerce Sales Analysis & BI Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f27;--mut:#667085;--bd:#e4e7ec;--a:#2563eb;--b:#10b981;--c:#f59e0b;--d:#ef4444;--e:#8b5cf6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f141b;--card:#171e28;--tx:#e8ecf2;--mut:#98a2b3;--bd:#2a3342;color-scheme:dark}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px;max-width:1200px;margin-inline:auto}
+header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-bottom:16px}
+h1{font-size:1.25rem;margin:0}h1 small{display:block;font-weight:400;color:var(--mut);font-size:.8rem;margin-top:2px}
+select{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font-size:.9rem}
+.grid{display:grid;gap:12px}.kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px}
+.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;min-width:0}
+.k{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}.v{font-size:1.5rem;font-weight:650;margin-top:4px}
+h2{font-size:.95rem;margin:0 0 10px}.ch{position:relative;height:250px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--bd)}th{color:var(--mut);font-weight:500}
+.ov{overflow-x:auto}ul{margin:0;padding-left:18px;line-height:1.6;font-size:.9rem}
+footer{color:var(--mut);font-size:.75rem;margin-top:12px}
+</style></head><body>
+<header>
+<h1>E-Commerce Sales Analysis & BI Dashboard<small>Revenue, profitability, regional performance and customer segmentation (RFM)</small></h1>
+<div><select id="fy"><option value="all">All years</option><option>2024</option><option>2025</option></select>
+<select id="fr"><option value="all">All regions</option></select></div>
+</header>
+<div class="grid kpis" id="kpis"></div>
+<div class="card" style="margin-bottom:12px"><h2>Monthly revenue & profit</h2><div class="ch"><canvas id="c1"></canvas></div></div>
+<div class="grid two">
+<div class="card"><h2>Revenue & profit by category</h2><div class="ch"><canvas id="c2"></canvas></div></div>
+<div class="card"><h2>Revenue share by region</h2><div class="ch"><canvas id="c3"></canvas></div></div>
+</div>
+<div class="grid two">
+<div class="card"><h2>Customer segments (RFM)</h2><div class="ov"><table id="rfm"></table></div></div>
+<div class="card"><h2>Key insights</h2><ul id="ins"></ul></div>
+</div>
+<footer>Demo built on a simulated dataset of ~7,000 orders (2024–2025). Replace the generator with a real source such as the Kaggle Olist or Superstore dataset.</footer>
+<script>
+const rnd=(s=>()=>(s=(s*1664525+1013904223)%4294967296)/4294967296)(42);
+const CATS={Electronics:[180,.18],Fashion:[45,.45],Home:[70,.35],Beauty:[30,.5],Sports:[60,.3],Books:[18,.4]};
+const REG=['North','South','East','West','Central'],RW=[.2,.25,.2,.2,.15];
+const MW=[.8,.75,.85,.85,.9,.85,.8,.85,.95,1.05,1.5,1.7];
+const T0=Date.UTC(2024,0,1),DAY=864e5,cn=Object.keys(CATS),DATA=[];
+while(DATA.length<7000){
+ const d=Math.floor(rnd()*731),dt=new Date(T0+d*DAY);
+ if(rnd()>MW[dt.getUTCMonth()]/1.7*(1+d/731*.5)/1.5)continue;
+ const cat=cn[Math.floor(rnd()**1.3*cn.length)],[bp,m]=CATS[cat];
+ let r=rnd(),ri=0,acc=RW[0];while(r>acc&&ri<4)acc+=RW[++ri];
+ const price=bp*(.6+rnd()*.9),q=1+Math.floor(rnd()**2*4),disc=[0,0,.05,.1,.2][Math.floor(rnd()*5)];
+ const rev=price*q*(1-disc),cost=price*q*(1-m);
+ DATA.push({d,ym:dt.toISOString().slice(0,7),y:dt.getUTCFullYear(),cat,reg:REG[ri],cust:Math.floor(rnd()**1.6*1800),rev,profit:rev-cost});
+}
+const fr=document.getElementById('fr');REG.forEach(r=>fr.add(new Option(r,r)));
+const fmt=n=>n>=1e6?'$'+(n/1e6).toFixed(2)+'M':n>=1e3?'$'+(n/1e3).toFixed(1)+'K':'$'+n.toFixed(0);
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+const grp=(a,k)=>a.reduce((o,x)=>((o[x[k]]??=[]).push(x),o),{});
+const charts={};
+function mk(id,cfg){charts[id]?.destroy();const cs=getComputedStyle(document.documentElement);const tc=cs.getPropertyValue('--mut').trim(),gc=cs.getPropertyValue('--bd').trim();
+ Chart.defaults.color=tc;cfg.options={responsive:true,maintainAspectRatio:false,...cfg.options};
+ if(cfg.options.scales)for(const s of Object.values(cfg.options.scales))s.grid={color:gc};
+ charts[id]=new Chart(document.getElementById(id),cfg)}
+function render(){
+ const y=document.getElementById('fy').value,rg=fr.value;
+ const D=DATA.filter(x=>(y==='all'||x.y==+y)&&(rg==='all'||x.reg===rg));
+ const rev=sum(D,x=>x.rev),pr=sum(D,x=>x.profit);
+ const custs=grp(D,'cust'),nC=Object.keys(custs).length;
+ const K=[['Revenue',fmt(rev)],['Profit',fmt(pr)],['Profit margin',(pr/rev*100).toFixed(1)+'%'],['Orders',D.length.toLocaleString()],['Avg order value','$'+(rev/D.length).toFixed(0)],['Customers',nC.toLocaleString()]];
+ document.getElementById('kpis').innerHTML=K.map(([k,v])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+ const bm=grp(D,'ym'),ms=Object.keys(bm).sort();
+ mk('c1',{type:'line',data:{labels:ms,datasets:[{label:'Revenue',data:ms.map(m=>sum(bm[m],x=>x.rev)),borderColor:'#2563eb',backgroundColor:'#2563eb22',fill:true,tension:.3},{label:'Profit',data:ms.map(m=>sum(bm[m],x=>x.profit)),borderColor:'#10b981',tension:.3}]},options:{scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+ const bc=grp(D,'cat'),cl=Object.keys(bc).sort((a,b)=>sum(bc[b],x=>x.rev)-sum(bc[a],x=>x.rev));
+ mk('c2',{type:'bar',data:{labels:cl,datasets:[{label:'Revenue',data:cl.map(c=>sum(bc[c],x=>x.rev)),backgroundColor:'#2563eb'},{label:'Profit',data:cl.map(c=>sum(bc[c],x=>x.profit)),backgroundColor:'#10b981'}]},options:{scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+ const br=grp(D,'reg'),rl=Object.keys(br);
+ mk('c3',{type:'doughnut',data:{labels:rl,datasets:[{data:rl.map(r=>sum(br[r],x=>x.rev)),backgroundColor:['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom'}}}});
+ // RFM
+ const ref=Math.max(...D.map(x=>x.d)),seg={};
+ const SG=['Champions','Loyal','Promising','At Risk','Lost'];SG.forEach(s=>seg[s]={n:0,rev:0});
+ for(const o of Object.values(custs)){const f=o.length,r=ref-Math.max(...o.map(x=>x.d)),m=sum(o,x=>x.rev);
+  const s=f>=4&&r<=90?'Champions':f>=3&&r<=180?'Loyal':r>180&&f>=2?'At Risk':r>180?'Lost':'Promising';seg[s].n++;seg[s].rev+=m}
+ document.getElementById('rfm').innerHTML='<tr><th>Segment</th><th>Customers</th><th>Revenue</th><th>Share</th></tr>'+SG.map(s=>`<tr><td>${s}</td><td>${seg[s].n}</td><td>${fmt(seg[s].rev)}</td><td>${(seg[s].rev/rev*100).toFixed(1)}%</td></tr>`).join('');
+ // insights
+ const topC=cl[0],topR=rl.sort((a,b)=>sum(br[b],x=>x.rev)-sum(br[a],x=>x.rev))[0];
+ const mm=ms.reduce((a,b)=>sum(bm[b],x=>x.rev)>sum(bm[a],x=>x.rev)?b:a);
+ const mg=cl.map(c=>[c,sum(bc[c],x=>x.profit)/sum(bc[c],x=>x.rev)]).sort((a,b)=>b[1]-a[1]);
+ const cv=Object.values(custs).map(o=>sum(o,x=>x.rev)).sort((a,b)=>b-a),t10=sum(cv.slice(0,Math.ceil(cv.length*.1)),x=>x);
+ document.getElementById('ins').innerHTML=[
+ `<b>${topC}</b> drives the most revenue (${fmt(sum(bc[topC],x=>x.rev))}), but <b>${mg[0][0]}</b> has the best margin at ${(mg[0][1]*100).toFixed(0)}%.`,
+ `<b>${mg[mg.length-1][0]}</b> has the thinnest margin (${(mg[mg.length-1][1]*100).toFixed(0)}%), so review its discounting and sourcing costs.`,
+ `Peak revenue month: <b>${mm}</b>, consistent with Q4 holiday seasonality.`,
+ `<b>${topR}</b> is the leading region by revenue.`,
+ `The top 10% of customers generate <b>${(t10/rev*100).toFixed(0)}%</b> of revenue, so retention of high-value buyers is a priority.`,
+ `<b>${seg['At Risk'].n+seg['Lost'].n}</b> customers are At Risk or Lost, a target pool for win-back campaigns.`].map(t=>`<li>${t}</li>`).join('');
+}
+document.getElementById('fy').onchange=render;fr.onchange=render;render();
+</script></body></html>
