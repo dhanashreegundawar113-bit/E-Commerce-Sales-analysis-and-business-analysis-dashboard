@@ -1,12 +1,12 @@
-# 📊 E-Commerce Sales Analysis & Business Intelligence Dashboard
+#E-Commerce Sales Analysis & Business Intelligence Dashboard
 
 An interactive BI dashboard that analyzes e-commerce sales performance, profitability, regional trends and customer behavior to support data-driven business decisions.
 
-🔗 **Live Dashboard:** https://dhanashreegundawar113-bit.github.io/E-Commerce-Sales-analysis-and-business-analysis-dashboard/
+Live Dashboard:https://dhanashreegundawar113-bit.github.io/E-Commerce-Sales-analysis-and-business-analysis-dashboard/
 
 ![Dashboard Screenshot](screenshots/dashboard.png)
 
-## 🎯 Business Problem
+## Business Problem
 
 An online retailer wants to understand:
 1. What drives revenue and profit?
@@ -14,15 +14,13 @@ An online retailer wants to understand:
 3. When does demand peak, and how should inventory be planned?
 4. Which customers are most valuable, and which are at risk of leaving?
 
-## 📂 Dataset
+## Dataset
 
-- ~7,000 orders from Jan 2024 to Dec 2025
+- 7,000 orders from Jan 2024 to Dec 2025
 - 6 product categories, 5 regions, ~1,800 customers
 - Fields: order date, category, region, customer ID, revenue, profit
 
-> Note: this demo uses a simulated dataset. Replace it with a real source (e.g. Kaggle Olist or Superstore Sales) for production analysis.
-
-## 🛠️ Tools & Technologies
+## Tools & Technologies
 
 | Area | Tools |
 |---|---|
@@ -31,13 +29,13 @@ An online retailer wants to understand:
 | Dashboard hosting | HTML, CSS, JavaScript, GitHub Pages |
 | Techniques | KPI design, trend analysis, RFM segmentation |
 
-## 📈 Dashboard Features
+## Dashboard Features
 
-- **6 KPIs:** Revenue, Profit, Profit Margin, Orders, Average Order Value, Customers
-- **Filters:** by year and region
-- **Charts:** monthly revenue and profit trend, category performance, regional revenue share
-- **RFM customer segmentation:** Champions, Loyal, Promising, At Risk, Lost
-- **Auto-generated insights** that update with the filters
+- 6 KPIs:Revenue, Profit, Profit Margin, Orders, Average Order Value, Customers
+- Filters:by year and region
+- Charts: monthly revenue and profit trend, category performance, regional revenue share
+- RFM customer segmentation:Champions, Loyal, Promising, At Risk, Lost
+- Auto-generated insights that update with the filters
 
 ## 🔍 Key Findings
 
@@ -70,7 +68,3 @@ E-Commerce-Sales-analysis-and-business-analysis-dashboard/
 
 1. Clone the repository: `git clone https://github.com/dhanashreegundawar113-bit/E-Commerce-Sales-analysis-and-business-analysis-dashboard.git`
 2. Open `index.html` in any browser.
-
-## 👤 Author
-
-**Your Name** | [LinkedIn](https://linkedin.com/in/your-profile) | [GitHub](https://github.com/dhanashreegundawar113-bit)
