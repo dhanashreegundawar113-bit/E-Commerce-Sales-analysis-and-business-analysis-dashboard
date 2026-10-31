@@ -62,9 +62,4 @@ E-Commerce-Sales-analysis-and-business-analysis-dashboard/
 ├── notebooks/        # Python analysis (EDA, RFM)
 ├── screenshots/      # Dashboard images
 └── README.md
-```
 
-## 🚀 How to Run
-
-1. Clone the repository: `git clone https://github.com/dhanashreegundawar113-bit/E-Commerce-Sales-analysis-and-business-analysis-dashboard.git`
-2. Open `index.html` in any browser.
